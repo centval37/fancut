@@ -189,6 +189,41 @@ input[type=range]{width:100%;accent-color:var(--tally)}
   <div class="screen" id="home">
     <h1><span class="dot" aria-hidden="true"></span>Fancut</h1>
     <p class="sub">What are you making today?</p>
+        <style>
+      .fc-tabs{display:flex;gap:4px;padding:4px;background:var(--panel);border:1px solid var(--line);border-radius:12px}
+      .fc-tabs button{flex:1;border:0;background:none;color:var(--muted);font:600 .95rem var(--body);padding:10px;border-radius:9px;cursor:pointer}
+      .fc-tabs button[aria-pressed="true"]{background:var(--tally);color:var(--tally-ink)}
+      a.choice{text-decoration:none}
+      .choice.soon{opacity:.5;cursor:default}
+      .choice.soon i{font:500 .8rem var(--mono);color:var(--muted)}
+    </style>
+    <div class="fc-tabs" id="fcTabs">
+      <button type="button" data-t="create" aria-pressed="false">Create</button>
+      <button type="button" data-t="edit" aria-pressed="true">Edit</button>
+    </div>
+    <div class="choices" id="fcCreate" hidden>
+      <a class="choice" href="/headline.html"><div><b>Headline</b><span>Big text over your photo</span></div><i aria-hidden="true">›</i></a>
+      <div class="choice soon"><div><b>Riddle post</b><span>A question for your comments</span></div><i>soon</i></div>
+      <div class="choice soon"><div><b>Billboard</b><span>Your message on a roadside sign</span></div><i>soon</i></div>
+      <div class="choice soon"><div><b>Fake chat</b><span>iMessage, WhatsApp and more</span></div><i>soon</i></div>
+      <div class="choice soon"><div><b>Sticker meme</b><span>Cut out a person and add big text</span></div><i>soon</i></div>
+      <div class="choice soon"><div><b>Pitch board</b><span>Move players and animate tactics</span></div><i>soon</i></div>
+    </div>
+    <script>
+    (function(){
+      var tabs=document.getElementById('fcTabs'),create=document.getElementById('fcCreate');
+      tabs.querySelectorAll('button').forEach(function(b){
+        b.onclick=function(){
+          var edit=document.querySelector('#home .choices:not(#fcCreate)');
+          var c=b.dataset.t==='create';
+          create.hidden=!c;
+          if(edit)edit.hidden=c;
+          tabs.querySelectorAll('button').forEach(function(x){x.setAttribute('aria-pressed',x===b)});
+        };
+      });
+    })();
+    </script>
+
     <div class="choices">
       <button class="choice" data-go="prompt"><div><b>Record with script</b><span>Read your words while you film</span></div><i aria-hidden="true">›</i></button>
       <button class="choice" data-go="edit"><div><b>Edit a video</b><span>Layers for clips, text, overlays and sound</span></div><i aria-hidden="true">›</i></button>
