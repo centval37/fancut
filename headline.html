@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fancut - Headline template</title>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0 auto;font-family:system-ui,sans-serif;background:#111;color:#fff;padding:16px;max-width:520px}
+  canvas{width:100%;height:auto;border-radius:12px;background:#222;display:block;margin-bottom:6px;touch-action:none}
+  .hint{font-size:13px;color:#aaa;margin:0 0 12px;text-align:center}
+  textarea,select{width:100%;padding:12px;font-size:18px;border-radius:10px;border:0;margin-bottom:10px;font-family:inherit}
+  .row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+  .row span{width:90px;font-size:14px;color:#ccc}
+  .row input[type=range]{flex:1}
+  input[type=color]{width:56px;height:40px;border:0;padding:0;background:none}
+  label.btn,button{display:block;width:100%;padding:14px;margin-bottom:10px;border-radius:10px;border:0;font-size:16px;text-align:center;cursor:pointer;background:#333;color:#fff}
+  #dl{background:#ff6a2b;font-weight:700}
+</style>
+</head>
+<body>
+<canvas id="c" width="1080" height="1350"></canvas>
+<p class="hint">Drag on the picture to move the text</p>
+
+<textarea id="word" rows="2" placeholder="Type your headline">SACKED</textarea>
+<label class="btn">Add your photo<input type="file" id="file" accept="image/*" hidden></label>
+
+<select id="font">
+  <option value='Impact, "Arial Black", sans-serif'>Font: Impact</option>
+  <option value='"Arial Black", Helvetica, sans-serif'>Font: Arial Black</option>
+  <option value='Georgia, serif'>Font: Serif</option>
+  <option value='"Bradley Hand", "Comic Sans MS", cursive'>Font: Handwriting</option>
+</select>
+<select id="format">
+  <option value="1080x1350">Format: 4:5 post</option>
+  <option value="1080x1920">Format: 9:16 TikTok / Reels</option>
+  <option value="1080x1080">Format: Square</option>
+</select>
+
+<div class="row"><span>Colour</span><input type="color" id="color" value="#ffffff"></div>
+<div class="row"><span>Size</span><input type="range" id="size" min="40" max="400" value="260"></div>
+<div class="row"><span>Boldness</span><input type="range" id="bold" min="0" max="40" value="8"></div>
+<div class="row"><span>Darken photo</span><input type="range" id="dark" min="0" max="80" value="25"></div>
+
+<button id="centre">Centre the text</button>
+<button id="dl">Download PNG</button>
+
+<script>
+const c=document.getElementById('c'),x=c.getContext('2d');
+const $=id=>document.getElementById(id);
+const word=$('word'),file=$('file'),font=$('font'),format=$('format');
+const color=$('color'),size=$('size'),bold=$('bold'),dark=$('dark');
+let img=null,px=0.5,py=0.5;
+
+function draw(){
+  const W=c.width,H=c.height;
+  x.fillStyle='#222';x.fillRect(0,0,W,H);
+  if(img){
+    const s=Math.max(W/img.width,H/img.height);
+    const w=img.width*s,h=img.height*s;
+    x.drawImage(img,(W-w)/2,(H-h)/2,w,h);
+  }
+  x.fillStyle='rgba(0,0,0,'+(dark.value/100)+')';
+  x.fillRect(0,0,W,H);
+
+  const lines=word.value.toUpperCase().split('\n');
+  const fs=Number(size.value);
+  x.font=fs+'px '+font.value;
+  x.textAlign='center';
+  x.textBaseline='middle';
+  x.lineJoin='round';
+  x.lineWidth=Number(bold.value);
+  x.strokeStyle=color.value;
+  x.fillStyle=color.value;
+  const lh=fs*1.05;
+  const top=py*H-(lines.length-1)*lh/2;
+  lines.forEach((t,i)=>{
+    const y=top+i*lh;
+    if(x.lineWidth>0)x.strokeText(t,px*W,y);
+    x.fillText(t,px*W,y);
+  });
+}
+
+function setFormat(){
+  const parts=format.value.split('x').map(Number);
+  c.width=parts[0];c.height=parts[1];
+  draw();
+}
+
+let drag=false;
+function move(e){
+  const r=c.getBoundingClientRect();
+  px=(e.clientX-r.left)/r.width;
+  py=(e.clientY-r.top)/r.height;
+  draw();
+}
+c.addEventListener('pointerdown',e=>{drag=true;c.setPointerCapture(e.pointerId);move(e);});
+c.addEventListener('pointermove',e=>{if(drag)move(e);});
+c.addEventListener('pointerup',()=>{drag=false;});
+c.addEventListener('pointercancel',()=>{drag=false;});
+
+[word,font,color,size,bold,dark].forEach(el=>el.addEventListener('input',draw));
+format.addEventListener('change',setFormat);
+
+file.onchange=e=>{
+  const f=e.target.files[0];if(!f)return;
+  const i=new Image();
+  i.onload=()=>{img=i;draw();};
+  i.src=URL.createObjectURL(f);
+};
+$('centre').onclick=()=>{px=0.5;py=0.5;draw();};
+$('dl').onclick=()=>{
+  const a=document.createElement('a');
+  a.download='headline.png';
+  a.href=c.toDataURL('image/png');
+  a.click();
+};
+draw();
+</script>
+</body>
+</html>
